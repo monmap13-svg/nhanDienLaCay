@@ -1,0 +1,8 @@
+Django>=4.0
+tensorflow
+numpy
+pillow
+requests
+django-cors-headers
+uvicorn
+gunicorn

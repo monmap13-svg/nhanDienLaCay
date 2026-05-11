@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhận diện bệnh khoai tây 🌱</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-green-50 to-green-100 min-h-screen font-sans flex flex-col items-center">
+
+  <header class="w-full bg-green-700 text-white p-6 shadow-lg">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">🌱 Trợ lý AI - Nhận diện bệnh lá khoai tây</h1>
+      <p class="italic hidden md:block">Chẩn đoán nhanh & Tư vấn chuyên sâu</p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl w-full mt-8 p-4 md:p-6 flex flex-col gap-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <section class="bg-white p-6 shadow-xl rounded-2xl flex flex-col">
+        <h2 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">📸 1. Tải ảnh lá bệnh</h2>
+
+        <div
+          class="border-2 border-dashed border-green-400 p-4 rounded-xl text-center hover:bg-green-50 transition relative flex flex-col items-center justify-center min-h-[250px] overflow-hidden bg-gray-50 flex-1">
+          <input type="file" id="fileInput" accept="image/*"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(event)" />
+
+          <div id="uploadPlaceholder" class="flex flex-col items-center pointer-events-none">
+            <svg class="w-12 h-12 text-green-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <p class="text-green-700 font-semibold text-lg">Nhấn để chụp hoặc chọn ảnh</p>
+            <p class="text-gray-400 text-sm mt-1">(Định dạng: JPG, PNG)</p>
+          </div>
+
+          <img id="imagePreview" class="hidden max-h-56 rounded-lg object-contain shadow-sm relative z-0"
+            alt="Ảnh xem trước" />
+        </div>
+
+        <button onclick="uploadImage()"
+          class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition font-bold text-lg w-full">
+          🚀 Tiến hành Chẩn đoán
+        </button>
+      </section>
+
+      <section id="resultSection"
+        class="bg-white p-6 shadow-xl rounded-2xl hidden flex-col border-t-4 border-green-500">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">📋 2. Kết quả Chẩn đoán</h2>
+
+        <div id="statusBox" class="p-4 rounded-lg mb-4 text-center">
+          <p class="text-gray-600 text-sm uppercase tracking-wide font-semibold">Phát hiện bệnh</p>
+          <p id="diseaseName" class="text-2xl font-bold mt-1"></p>
+          <p id="confidenceLevel" class="text-sm mt-1 font-medium"></p>
+        </div>
+
+        <h3 class="font-bold text-gray-800 mb-2 flex items-center gap-2">⚡ Hướng xử lý nhanh:</h3>
+        <ul id="treatmentList" class="list-disc list-inside text-gray-700 space-y-2 bg-gray-50 p-4 rounded-lg flex-1">
+        </ul>
+      </section>
+
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <section class="lg:col-span-2 bg-white p-6 shadow-xl rounded-2xl flex flex-col">
+        <h2 class="text-xl font-bold text-blue-700 mb-2 flex items-center gap-2">
+          <span>🤖</span> 3. Trợ lý AI Chuyên sâu
+        </h2>
+        <p class="text-gray-500 text-sm mb-4">Bạn có thắc mắc về liều lượng thuốc, cách phòng ngừa hay kỹ thuật canh
+          tác? Hãy hỏi AI tại đây.</p>
+
+        <div id="chatbox"
+          class="border rounded-xl p-4 flex-1 overflow-y-auto bg-gray-50 flex flex-col gap-3 shadow-inner min-h-[250px] max-h-[350px]">
+          <div class="self-start bg-blue-100 text-blue-800 px-4 py-2 rounded-lg max-w-[85%] shadow-sm">
+            <b>Trợ lý AI:</b> Chào bạn! Tôi có thể giúp gì cho quá trình chăm sóc cây trồng của bạn hôm nay?
+          </div>
+        </div>
+
+        <div class="flex mt-4 shadow-sm rounded-xl">
+          <input type="text" id="userInput" placeholder="Nhập câu hỏi chi tiết về bệnh, cách pha thuốc..."
+            class="flex-1 border rounded-l-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onkeypress="handleEnter(event)" />
+          <button onclick="sendMessage()"
+            class="bg-blue-600 text-white px-8 rounded-r-xl hover:bg-blue-700 transition font-bold">Gửi</button>
+        </div>
+      </section>
+
+      <section class="bg-white p-6 shadow-xl rounded-2xl flex flex-col">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <span>🕒</span> Lịch sử
+          </h2>
+          <button onclick="clearHistory()" class="text-sm text-red-500 hover:text-red-700 underline font-medium">Xóa tất
+            cả</button>
+        </div>
+
+        <div id="historyContainer" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 max-h-[350px]">
+          <p class="text-gray-500 text-center w-full italic mt-4">Chưa có dữ liệu lịch sử.</p>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="mt-4 mb-8 text-gray-500 text-sm">
+    © 2026 Hệ thống Nhận diện Bệnh Khoai tây AI
+  </footer>
+
+  <script>
+    let detectedDisease = "";
+
+    // 1. TỪ ĐIỂN CÁCH XỬ LÝ NHANH DẠNG LIST
+    const treatmentGuide = {
+      "Early_Blight": [
+        "Cắt bỏ và tiêu hủy ngay các lá, cành bị đốm đen.",
+        "Không tưới nước trực tiếp lên lá để tránh lây lan bào tử nấm.",
+        "Phun thuốc diệt nấm có chứa gốc Đồng (Copper) hoặc Mancozeb.",
+        "Đảm bảo khoảng cách trồng thông thoáng, giảm độ ẩm quanh gốc."
+      ],
+      "Late_Blight": [
+        "Nhổ bỏ và tiêu hủy phần cây bị nhiễm bệnh nặng (đốt hoặc vứt xa khu trồng).",
+        "Tuyệt đối không sử dụng củ từ cây bệnh để làm giống cho vụ sau.",
+        "Sử dụng thuốc đặc trị nấm Phytophthora (ví dụ: Metalaxyl, Cymoxanil).",
+        "Đình chỉ ngay việc tưới nước nếu thời tiết đang mưa ẩm."
+      ],
+      "Healthy": [
+        "Tiếp tục duy trì chế độ tưới nước và ánh sáng hiện tại.",
+        "Bón phân định kỳ (NPK) để duy trì sức đề kháng cho cây.",
+        "Thường xuyên kiểm tra mặt dưới lá và gốc để phát hiện sớm sâu bệnh.",
+        "Vệ sinh cỏ dại xung quanh gốc cây để hạn chế mầm bệnh."
+      ]
+    };
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      const imagePreview = document.getElementById("imagePreview");
+      const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+      const resultSection = document.getElementById("resultSection");
+
+      if (file) {
+        imagePreview.src = URL.createObjectURL(file);
+        imagePreview.classList.remove("hidden");
+        uploadPlaceholder.classList.add("hidden");
+        // Ẩn bảng kết quả cũ đi khi chọn ảnh mới
+        resultSection.classList.add("hidden");
+        resultSection.classList.remove("flex");
+      }
+    }
+
+    function handleEnter(event) {
+      if (event.key === "Enter") sendMessage();
+    }
+
+    async function uploadImage() {
+      const fileInput = document.getElementById("fileInput").files[0];
+      if (!fileInput) return alert("Vui lòng chọn hoặc chụp một bức ảnh trước nhé!");
+
+      const resultSection = document.getElementById("resultSection");
+      const statusBox = document.getElementById("statusBox");
+      const diseaseName = document.getElementById("diseaseName");
+      const confidenceLevel = document.getElementById("confidenceLevel");
+      const treatmentList = document.getElementById("treatmentList");
+
+      // Hiện UI Đang tải
+      resultSection.classList.remove("hidden");
+      resultSection.classList.add("flex");
+
+      statusBox.className = "p-4 rounded-lg mb-4 text-center bg-gray-100 border border-gray-300";
+      diseaseName.innerText = "⏳ Đang phân tích ảnh...";
+      diseaseName.className = "text-xl font-bold mt-1 text-gray-600";
+      confidenceLevel.innerText = "";
+      treatmentList.innerHTML = "<li class='text-gray-500 italic'>Đang truy xuất hệ thống...</li>";
+
+      const formData = new FormData();
+      formData.append("file", fileInput);
+
+      try {
+        const response = await fetch("http://192.168.100.121:8000/predict", { // ĐÃ ĐỔI THÀNH LOCALHOST
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+        detectedDisease = data.class;
+        const confidence = (data.confidence * 100).toFixed(2);
+
+        // Hiển thị tên bệnh và đổi màu sắc tương ứng
+        let displayDiseaseName = "";
+        if (detectedDisease === "Healthy") {
+          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-green-100 border border-green-400";
+          diseaseName.className = "text-2xl font-bold mt-1 text-green-700";
+          displayDiseaseName = "KHOAI TÂY KHỎE MẠNH";
+        } else if (detectedDisease === "Early_Blight") {
+          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-orange-100 border border-orange-400";
+          diseaseName.className = "text-2xl font-bold mt-1 text-orange-700";
+          displayDiseaseName = "MỐC SƯƠNG ĐẾN SỚM";
+        } else {
+          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-red-100 border border-red-400";
+          diseaseName.className = "text-2xl font-bold mt-1 text-red-700";
+          displayDiseaseName = "MỐC SƯƠNG ĐẾN MUỘN";
+        }
+
+        diseaseName.innerText = displayDiseaseName;
+        confidenceLevel.innerText = `Độ tin cậy: ${confidence}%`;
+        confidenceLevel.className = "text-sm mt-1 font-medium text-gray-700";
+
+        // Render danh sách xử lý nhanh
+        treatmentList.innerHTML = "";
+        const steps = treatmentGuide[detectedDisease] || ["Cần tư vấn thêm với chuyên gia."];
+        steps.forEach(step => {
+          treatmentList.innerHTML += `<li>${step}</li>`;
+        });
+
+        // LƯU LỊCH SỬ SAU KHI CHẨN ĐOÁN XONG
+        saveHistory(displayDiseaseName, confidence, fileInput);
+
+      } catch (error) {
+        statusBox.className = "p-4 rounded-lg mb-4 text-center bg-red-100 border border-red-400";
+        diseaseName.className = "text-xl font-bold mt-1 text-red-700";
+        diseaseName.innerText = "LỖI KẾT NỐI SERVER";
+        confidenceLevel.innerText = "Vui lòng kiểm tra lại Backend (app.py).";
+        treatmentList.innerHTML = "";
+      }
+    }
+
+    async function sendMessage() {
+      const userInput = document.getElementById("userInput").value;
+      if (!userInput.trim()) return;
+
+      const chatbox = document.getElementById("chatbox");
+      chatbox.innerHTML += `<div class="self-end bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[85%] shadow-sm"><b>Bạn:</b> ${userInput}</div>`;
+      document.getElementById("userInput").value = "";
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      let finalQuery = userInput;
+      if (detectedDisease) {
+        finalQuery = `(Ngữ cảnh: Tôi đang điều trị bệnh ${detectedDisease} trên khoai tây. Dựa vào Knowledge Base, hãy trả lời câu hỏi sau): ${userInput}`;
+      }
+
+      const botMsgId = "bot-msg-" + Date.now();
+      chatbox.innerHTML += `<div id="${botMsgId}" class="self-start bg-blue-50 text-blue-800 px-4 py-2 rounded-lg max-w-[85%] border border-blue-200 shadow-sm"><b>Trợ lý AI:</b> Đang suy nghĩ... ⏳</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      try {
+        const response = await fetch("http://192.168.100.121:8000/chat", { // ĐÃ ĐỔI THÀNH LOCALHOST
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: finalQuery })
+        });
+
+        const data = await response.json();
+        const formattedAnswer = data.answer.replace(/\n/g, "<br>");
+        document.getElementById(botMsgId).innerHTML = `<b>Trợ lý AI:</b> <span class="leading-relaxed">${formattedAnswer}</span>`;
+      } catch (error) {
+        document.getElementById(botMsgId).innerHTML = `<b>Lỗi:</b> Không thể kết nối với AI.`;
+      }
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    // ==========================================
+    // CÁC HÀM XỬ LÝ LỊCH SỬ (HISTORY)
+    // ==========================================
+
+    // 1. Hàm tải lịch sử khi vừa mở app
+    function loadHistory() {
+      const historyContainer = document.getElementById("historyContainer");
+      let history = JSON.parse(localStorage.getItem('plantDiseaseHistory')) || [];
+
+      if (history.length === 0) {
+        historyContainer.innerHTML = '<p class="text-gray-500 text-center w-full italic mt-4">Chưa có dữ liệu lịch sử.</p>';
+        return;
+      }
+
+      historyContainer.innerHTML = ""; // Xóa nội dung cũ
+
+      // Tạo các thẻ (card) hiển thị lịch sử
+      history.forEach(item => {
+        let statusColor = "";
+        if (item.disease.includes("KHỎE MẠNH")) statusColor = "bg-green-100 text-green-800 border-green-200";
+        else if (item.disease.includes("SỚM")) statusColor = "bg-orange-100 text-orange-800 border-orange-200";
+        else statusColor = "bg-red-100 text-red-800 border-red-200";
+
+        let card = `
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex gap-3 items-center hover:shadow-md transition">
+            <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg border border-gray-200" alt="Lá bệnh">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-xs text-gray-500 mb-1 flex items-center gap-1">📅 ${item.date}</p>
+              <p class="font-bold text-xs ${statusColor} px-2 py-1 rounded border inline-block truncate max-w-full" title="${item.disease}">
+                ${item.disease} (${item.confidence}%)
+              </p>
+            </div>
+          </div>
+        `;
+        historyContainer.innerHTML += card;
+      });
+    }
+
+    // 2. Hàm lưu kết quả vào máy
+    function saveHistory(displayDiseaseName, confidence, file) {
+      // Chuyển ảnh thành định dạng Base64 để lưu cục bộ
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64Image = e.target.result;
+
+        const historyItem = {
+          date: new Date().toLocaleString('vi-VN'),
+          disease: displayDiseaseName,
+          confidence: confidence,
+          image: base64Image
+        };
+
+        let history = JSON.parse(localStorage.getItem('plantDiseaseHistory')) || [];
+        history.unshift(historyItem); // Thêm lên đầu mảng
+
+        // Chỉ giữ lại 10 kết quả gần nhất để tránh lag trình duyệt
+        if (history.length > 10) history.pop();
+
+        localStorage.setItem('plantDiseaseHistory', JSON.stringify(history));
+        loadHistory(); // Tải lại giao diện ngay lập tức
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 3. Hàm xóa lịch sử
+    function clearHistory() {
+      if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chẩn đoán? Hành động này không thể hoàn tác.")) {
+        localStorage.removeItem('plantDiseaseHistory');
+        loadHistory();
+      }
+    }
+
+    // Tự động load lịch sử khi trang web vừa bật lên
+    window.onload = loadHistory;
+
+  </script>
+</body>
+
+</html>
