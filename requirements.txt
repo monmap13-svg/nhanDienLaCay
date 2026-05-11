@@ -1,0 +1,13 @@
+Django>=4.0
+tensorflow
+numpy
+pillow
+requests
+django-cors-headers
+uvicorn
+gunicorn
+fastapi
+python-multipart
+python-dotenv
+jinja2
+google-genai
