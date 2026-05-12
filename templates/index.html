@@ -189,7 +189,7 @@
       formData.append("file", fileInput);
 
       try {
-        const response = await fetch("http://192.168.100.121:8000/predict", { // ĐÃ ĐỔI THÀNH LOCALHOST
+        const response = await fetch("/predict", {
           method: "POST",
           body: formData
         });
@@ -256,7 +256,7 @@
       chatbox.scrollTop = chatbox.scrollHeight;
 
       try {
-        const response = await fetch("http://192.168.100.121:8000/chat", { // ĐÃ ĐỔI THÀNH LOCALHOST
+        const response = await fetch("/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ q: finalQuery })
