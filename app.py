@@ -20,9 +20,13 @@ from google import genai
 # --------------------- ENV & GEMINI SETUP ---------------------
 load_dotenv()
 
-# Khởi tạo client cho Gemini. 
-# Thư viện google-genai sẽ tự động tìm GEMINI_API_KEY trong biến môi trường (.env)
-client = genai.Client()
+# Khởi tạo client cho Gemini với API key tường minh
+# Dùng http_options để chỉ định endpoint v1beta có hỗ trợ rộng hơn
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+client = genai.Client(
+    api_key=GEMINI_API_KEY,
+    http_options={"api_version": "v1beta"}
+)
 
 
 model = tf.keras.models.load_model("nhanDienLaSauBenh.h5",)
