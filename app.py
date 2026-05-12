@@ -67,16 +67,37 @@ def preprocess_image(image_bytes):
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     contents = await file.read()
-    img = preprocess_image(contents)
     
+    # 1. Gọi Gemini Vision kiểm tra trước xem ảnh có phải lá cây không
+    try:
+        from PIL import Image
+        pil_image = Image.open(io.BytesIO(contents))
+        gemini_prompt = "Đây có phải là hình chụp cận cảnh của một chiếc lá cây không? Chỉ trả lời đúng 1 từ: 'YES' nếu có lá cây, hoặc 'NO' nếu là vật thể khác (như con mèo, đồ vật, con người...)."
+        
+        check_response = client.models.generate_content(
+            model='gemini-flash-latest',
+            contents=[gemini_prompt, pil_image]
+        )
+        check_result = check_response.text.strip().upper()
+        print("Gemini Vision check:", check_result)
+        
+        if "NO" in check_result:
+            return JSONResponse({
+                "class": "Unknown",
+                "confidence": 0.0
+            })
+    except Exception as e:
+        print("Lỗi khi gọi Gemini kiểm tra ảnh:", e)
+        # Nếu Gemini lỗi, vẫn tiếp tục chạy model CNN
+
+    # 2. Xử lý ảnh bằng model CNN nội bộ (Keras .h5)
+    img = preprocess_image(contents)
     preds = model.predict(img)
     print("Xác suất thô:", preds)
     pred_class = CLASS_NAMES[np.argmax(preds[0])]
     confidence = float(np.max(preds[0]))
 
-    # Lọc ngoại lệ: Nếu độ tự tin dưới 75%, đánh dấu là Không xác định (Unknown)
-    if confidence < 0.75:
-        pred_class = "Unknown"
+    # (Đã bỏ lọc ngưỡng 75% vì đã có Gemini bảo vệ)
     
     return JSONResponse({
         "class": pred_class,
