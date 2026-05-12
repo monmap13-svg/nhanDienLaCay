@@ -22,7 +22,10 @@ load_dotenv()
 
 # Khởi tạo client với API key tường minh, dùng endpoint mặc định v1
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(
+    api_key=GEMINI_API_KEY,
+    http_options={'api_version': 'v1'}
+)
 
 
 model = tf.keras.models.load_model("nhanDienLaSauBenh.h5",)
@@ -106,7 +109,7 @@ Hướng dẫn trả lời:
     try:
         # gemini-1.5-flash: ổn định, hỗ trợ rộng rãi trên cloud
         response = client.models.generate_content(
-            model='models/gemini-1.5-flash',
+            model='gemini-1.5-flash',
             contents=prompt
         )
         answer = response.text
