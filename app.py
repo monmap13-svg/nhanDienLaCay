@@ -107,9 +107,9 @@ Hướng dẫn trả lời:
 """
     
     try:
-        # gemini-1.5-flash: ổn định, hỗ trợ rộng rãi trên cloud
+        # gemini-2.0-flash là bản ổn định nhất hiện tại và được hỗ trợ trên v1
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt
         )
         answer = response.text
