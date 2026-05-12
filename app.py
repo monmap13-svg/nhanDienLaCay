@@ -108,10 +108,9 @@ Hướng dẫn trả lời:
 """
     
     try:
-        # Sử dụng SDK mới để gọi model. 
-        # Ở đây mình dùng gemini-2.5-flash để cho tốc độ và hiệu suất tốt nhất
+        # Dùng gemini-1.5-flash - hỗ trợ rộng hơn trên các server cloud
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=prompt
         )
         answer = response.text
