@@ -73,6 +73,10 @@ async def predict(file: UploadFile = File(...)):
     print("Xác suất thô:", preds)
     pred_class = CLASS_NAMES[np.argmax(preds[0])]
     confidence = float(np.max(preds[0]))
+
+    # Lọc ngoại lệ: Nếu độ tự tin dưới 75%, đánh dấu là Không xác định (Unknown)
+    if confidence < 0.75:
+        pred_class = "Unknown"
     
     return JSONResponse({
         "class": pred_class,

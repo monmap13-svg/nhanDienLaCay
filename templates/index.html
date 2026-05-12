@@ -502,6 +502,11 @@
         "Bón phân định kỳ (NPK) để duy trì sức đề kháng cho cây.",
         "Thường xuyên kiểm tra mặt dưới lá và gốc để phát hiện sớm sâu bệnh.",
         "Vệ sinh cỏ dại xung quanh gốc cây để hạn chế mầm bệnh."
+      ],
+      "Unknown": [
+        "Ảnh có vẻ không phải là lá khoai tây hoặc chụp quá mờ.",
+        "Vui lòng chụp lại ảnh, đảm bảo lá nằm ở trung tâm và đủ ánh sáng.",
+        "Nếu đây đúng là lá, có thể cây đang mắc một bệnh lạ mà hệ thống chưa học qua."
       ]
     };
 
@@ -553,7 +558,11 @@
         const confidence = (data.confidence * 100).toFixed(2);
 
         let displayName = "";
-        if (detectedDisease === "Healthy") {
+        if (detectedDisease === "Unknown") {
+          statusBox.className = "status-box status-loading"; // Nền xám
+          diseaseName.style.color = "#555";
+          displayName = "KHÔNG THỂ NHẬN DIỆN";
+        } else if (detectedDisease === "Healthy") {
           statusBox.className = "status-box status-healthy";
           diseaseName.style.color = "var(--healthy)";
           displayName = "KHOAI TÂY KHỎE MẠNH";
