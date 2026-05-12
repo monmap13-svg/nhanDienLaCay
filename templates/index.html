@@ -1,129 +1,489 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PlantDoc - Ứng dụng nhận diện bệnh lá khoai tây bằng AI. Chẩn đoán nhanh, tư vấn chuyên sâu.">
   <title>PlantDoc - Nhận diện bệnh lá cây</title>
   <link rel="icon" type="image/png" href="/static/plantdoc_logo.png">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #3d8b37;
+      --green-dark:   #2d6a28;
+      --green-light:  #e8f5e2;
+      --green-border: #c5dfc0;
+      --bg:           #f4f8f3;
+      --surface:      #ffffff;
+      --border:       #dde8d9;
+      --text:         #1a2e1a;
+      --text-sub:     #4a7c4e;
+      --text-muted:   #8a9e8c;
+      --healthy:      #2e7d32;
+      --early:        #e65100;
+      --late:         #c62828;
+      --radius:       14px;
+      --shadow:       0 2px 12px rgba(0,0,0,0.07);
+      --shadow-hover: 0 6px 24px rgba(0,0,0,0.12);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #f4f8f3 0%, #eaf2e5 100%);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--green);
+      color: #fff;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(45,106,40,0.18);
+    }
+    .header-inner {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-wrap img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #fff;
+      padding: 3px;
+      object-fit: contain;
+    }
+    .logo-wrap h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header-tag {
+      font-size: 0.85rem;
+      opacity: 0.88;
+      font-style: italic;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .row-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: box-shadow 0.25s ease;
+    }
+    .card:hover { box-shadow: var(--shadow-hover); }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title .step-badge {
+      background: var(--green);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed var(--green-border);
+      border-radius: 10px;
+      background: var(--green-light);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s;
+      overflow: hidden;
+    }
+    .upload-zone:hover { border-color: var(--green); background: #dff0d8; }
+    .upload-zone input[type=file] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; z-index: 10;
+      width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .upload-label { font-size: 0.95rem; font-weight: 600; color: var(--green-dark); }
+    .upload-hint  { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    #imagePreview {
+      max-height: 210px;
+      border-radius: 8px;
+      object-fit: contain;
+      display: none;
+    }
+
+    /* ── BUTTON ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      width: 100%;
+      margin-top: 14px;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(61,139,55,0.25);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--green-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(61,139,55,0.3);
+    }
+    .btn-primary:disabled {
+      background: #a8c8a5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── KẾT QUẢ ── */
+    #resultSection { display: none; flex-direction: column; }
+    #resultSection.show { display: flex; }
+
+    .status-box {
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 14px;
+      border: 1px solid;
+    }
+    .status-loading { background: #f5f5f5; border-color: #ccc; }
+    .status-healthy { background: #e8f5e9; border-color: #a5d6a7; }
+    .status-early   { background: #fff3e0; border-color: #ffcc80; }
+    .status-late    { background: #ffebee; border-color: #ef9a9a; }
+
+    .status-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    #diseaseName { font-size: 1.3rem; font-weight: 700; }
+    #confidenceLevel { font-size: 0.82rem; color: var(--text-sub); margin-top: 3px; }
+
+    .treatment-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    #treatmentList {
+      background: #f9fdf7;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 12px 12px 28px;
+      font-size: 0.87rem;
+      line-height: 1.7;
+      color: var(--text);
+      flex: 1;
+    }
+    #treatmentList li { margin-bottom: 4px; }
+
+    /* ── CHAT ── */
+    #chatbox {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f9fdf7;
+      padding: 14px;
+      min-height: 240px;
+      max-height: 320px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg-bot {
+      align-self: flex-start;
+      background: #f1f8e9;
+      border: 1px solid #c5dfc0;
+      color: #1b5e20;
+      padding: 10px 14px;
+      border-radius: 4px 14px 14px 14px;
+      max-width: 85%;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+    .msg-user {
+      align-self: flex-end;
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      color: #0d47a1;
+      padding: 10px 14px;
+      border-radius: 14px 4px 14px 14px;
+      max-width: 85%;
+      font-size: 0.88rem;
+    }
+    .chat-input-wrap {
+      display: flex;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    #userInput {
+      flex: 1;
+      padding: 11px 14px;
+      border: none;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+    }
+    #userInput::placeholder { color: var(--text-muted); }
+    .btn-send {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 11px 20px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-send:hover { background: var(--green-dark); }
+
+    /* ── LỊCH SỬ ── */
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .btn-clear {
+      font-size: 0.78rem;
+      color: var(--late);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .btn-clear:hover { background: #ffebee; }
+    #historyContainer {
+      overflow-y: auto;
+      max-height: 310px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .history-empty { font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 20px 0; }
+    .history-card {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      transition: box-shadow 0.2s;
+    }
+    .history-card:hover { box-shadow: var(--shadow); }
+    .history-card img { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; border: 1px solid var(--border); }
+    .history-info { flex: 1; min-width: 0; }
+    .history-date { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .history-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      display: inline-block;
+      border: 1px solid;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .badge-healthy { background: #e8f5e9; color: var(--healthy); border-color: #a5d6a7; }
+    .badge-early   { background: #fff3e0; color: var(--early);   border-color: #ffcc80; }
+    .badge-late    { background: #ffebee; color: var(--late);    border-color: #ef9a9a; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 24px 20px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .row-2, .row-3 { grid-template-columns: 1fr; }
+      .header-tag { display: none; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="bg-gradient-to-br from-green-50 to-green-100 min-h-screen font-sans flex flex-col items-center">
-
-  <header class="w-full bg-green-700 text-white p-6 shadow-lg">
-    <div class="max-w-6xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <img src="/static/plantdoc_logo.png" alt="PlantDoc Logo" class="h-10 w-10 rounded-lg object-contain bg-white p-1">
-        <h1 class="text-2xl font-bold">PlantDoc</h1>
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <img src="/static/plantdoc_logo.png" alt="PlantDoc">
+        <h1>PlantDoc</h1>
       </div>
-      <p class="italic hidden md:block">Chẩn đoán nhanh & Tư vấn chuyên sâu</p>
+      <span class="header-tag">Chẩn đoán bệnh lá cây bằng AI 🌿</span>
     </div>
   </header>
 
-  <main class="max-w-6xl w-full mt-8 p-4 md:p-6 flex flex-col gap-6">
+  <main>
+    <!-- Hàng 1: Upload + Kết quả -->
+    <div class="row-2">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      <section class="bg-white p-6 shadow-xl rounded-2xl flex flex-col">
-        <h2 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">📸 1. Tải ảnh lá bệnh</h2>
-
-        <div
-          class="border-2 border-dashed border-green-400 p-4 rounded-xl text-center hover:bg-green-50 transition relative flex flex-col items-center justify-center min-h-[250px] overflow-hidden bg-gray-50 flex-1">
-          <input type="file" id="fileInput" accept="image/*"
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(event)" />
-
-          <div id="uploadPlaceholder" class="flex flex-col items-center pointer-events-none">
-            <svg class="w-12 h-12 text-green-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
-              </path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-            <p class="text-green-700 font-semibold text-lg">Nhấn để chụp hoặc chọn ảnh</p>
-            <p class="text-gray-400 text-sm mt-1">(Định dạng: JPG, PNG)</p>
-          </div>
-
-          <img id="imagePreview" class="hidden max-h-56 rounded-lg object-contain shadow-sm relative z-0"
-            alt="Ảnh xem trước" />
+      <!-- Card 1: Upload ảnh -->
+      <div class="card">
+        <div class="card-title">
+          <span class="step-badge">1</span>
+          Tải ảnh lá cây lên
         </div>
 
-        <button onclick="uploadImage()"
-          class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition font-bold text-lg w-full">
-          🚀 Tiến hành Chẩn đoán
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+          <div id="uploadPlaceholder">
+            <div class="upload-icon">🌿</div>
+            <p class="upload-label">Nhấn để chọn hoặc chụp ảnh</p>
+            <p class="upload-hint">Hỗ trợ: JPG, PNG — Chụp rõ mặt lá bệnh</p>
+          </div>
+          <img id="imagePreview" alt="Ảnh xem trước">
+        </div>
+
+        <button class="btn btn-primary" id="diagnoseBtn" onclick="uploadImage()">
+          🔍 Tiến hành Chẩn đoán
         </button>
-      </section>
+      </div>
 
-      <section id="resultSection"
-        class="bg-white p-6 shadow-xl rounded-2xl hidden flex-col border-t-4 border-green-500">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">📋 2. Kết quả Chẩn đoán</h2>
-
-        <div id="statusBox" class="p-4 rounded-lg mb-4 text-center">
-          <p class="text-gray-600 text-sm uppercase tracking-wide font-semibold">Phát hiện bệnh</p>
-          <p id="diseaseName" class="text-2xl font-bold mt-1"></p>
-          <p id="confidenceLevel" class="text-sm mt-1 font-medium"></p>
+      <!-- Card 2: Kết quả chẩn đoán -->
+      <div class="card" id="resultSection">
+        <div class="card-title">
+          <span class="step-badge">2</span>
+          Kết quả Chẩn đoán
         </div>
 
-        <h3 class="font-bold text-gray-800 mb-2 flex items-center gap-2">⚡ Hướng xử lý nhanh:</h3>
-        <ul id="treatmentList" class="list-disc list-inside text-gray-700 space-y-2 bg-gray-50 p-4 rounded-lg flex-1">
-        </ul>
-      </section>
+        <div id="statusBox" class="status-box status-loading">
+          <p class="status-label">Phát hiện bệnh</p>
+          <p id="diseaseName"></p>
+          <p id="confidenceLevel"></p>
+        </div>
+
+        <p class="treatment-title">⚡ Hướng xử lý nhanh:</p>
+        <ul id="treatmentList"></ul>
+      </div>
 
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Hàng 2: Chat + Lịch sử -->
+    <div class="row-3">
 
-      <section class="lg:col-span-2 bg-white p-6 shadow-xl rounded-2xl flex flex-col">
-        <h2 class="text-xl font-bold text-blue-700 mb-2 flex items-center gap-2">
-          <span>🤖</span> 3. Trợ lý AI Chuyên sâu
-        </h2>
-        <p class="text-gray-500 text-sm mb-4">Bạn có thắc mắc về liều lượng thuốc, cách phòng ngừa hay kỹ thuật canh
-          tác? Hãy hỏi AI tại đây.</p>
+      <!-- Card 3: Chat AI -->
+      <div class="card">
+        <div class="card-title">
+          <span class="step-badge">3</span>
+          Hỏi chuyên gia AI về bệnh cây
+        </div>
+        <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:12px;">
+          Bạn có thắc mắc về cách điều trị, liều lượng thuốc hay phòng ngừa? Hãy hỏi tại đây.
+        </p>
 
-        <div id="chatbox"
-          class="border rounded-xl p-4 flex-1 overflow-y-auto bg-gray-50 flex flex-col gap-3 shadow-inner min-h-[250px] max-h-[350px]">
-          <div class="self-start bg-blue-100 text-blue-800 px-4 py-2 rounded-lg max-w-[85%] shadow-sm">
-            <b>Trợ lý AI:</b> Chào bạn! Tôi có thể giúp gì cho quá trình chăm sóc cây trồng của bạn hôm nay?
+        <div id="chatbox">
+          <div class="msg-bot">
+            <b>Trợ lý:</b> Chào bạn! Tôi có thể giúp gì cho việc chăm sóc cây trồng của bạn hôm nay?
           </div>
         </div>
 
-        <div class="flex mt-4 shadow-sm rounded-xl">
-          <input type="text" id="userInput" placeholder="Nhập câu hỏi chi tiết về bệnh, cách pha thuốc..."
-            class="flex-1 border rounded-l-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onkeypress="handleEnter(event)" />
-          <button onclick="sendMessage()"
-            class="bg-blue-600 text-white px-8 rounded-r-xl hover:bg-blue-700 transition font-bold">Gửi</button>
+        <div class="chat-input-wrap">
+          <input type="text" id="userInput"
+            placeholder="Ví dụ: Dùng thuốc gì cho bệnh mốc sương?"
+            onkeypress="handleEnter(event)">
+          <button class="btn-send" onclick="sendMessage()">Gửi →</button>
         </div>
-      </section>
+      </div>
 
-      <section class="bg-white p-6 shadow-xl rounded-2xl flex flex-col">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
-          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <span>🕒</span> Lịch sử
-          </h2>
-          <button onclick="clearHistory()" class="text-sm text-red-500 hover:text-red-700 underline font-medium">Xóa tất
-            cả</button>
+      <!-- Card 4: Lịch sử -->
+      <div class="card">
+        <div class="history-header">
+          <div class="card-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
+            🕒 Lịch sử chẩn đoán
+          </div>
+          <button class="btn-clear" onclick="clearHistory()">Xóa tất cả</button>
         </div>
-
-        <div id="historyContainer" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 max-h-[350px]">
-          <p class="text-gray-500 text-center w-full italic mt-4">Chưa có dữ liệu lịch sử.</p>
+        <div id="historyContainer">
+          <p class="history-empty">Chưa có dữ liệu lịch sử.</p>
         </div>
-      </section>
+      </div>
 
     </div>
-
   </main>
 
-  <footer class="mt-4 mb-8 text-gray-500 text-sm">
-    © 2026 Hệ thống Nhận diện Bệnh Khoai tây AI
+  <footer>
+    © 2026 PlantDoc — Hệ thống nhận diện bệnh lá khoai tây bằng AI
   </footer>
 
   <script>
     let detectedDisease = "";
 
-    // 1. TỪ ĐIỂN CÁCH XỬ LÝ NHANH DẠNG LIST
     const treatmentGuide = {
       "Early_Blight": [
         "Cắt bỏ và tiêu hủy ngay các lá, cành bị đốm đen.",
@@ -150,14 +510,11 @@
       const imagePreview = document.getElementById("imagePreview");
       const uploadPlaceholder = document.getElementById("uploadPlaceholder");
       const resultSection = document.getElementById("resultSection");
-
       if (file) {
         imagePreview.src = URL.createObjectURL(file);
-        imagePreview.classList.remove("hidden");
-        uploadPlaceholder.classList.add("hidden");
-        // Ẩn bảng kết quả cũ đi khi chọn ảnh mới
-        resultSection.classList.add("hidden");
-        resultSection.classList.remove("flex");
+        imagePreview.style.display = "block";
+        uploadPlaceholder.style.display = "none";
+        resultSection.classList.remove("show");
       }
     }
 
@@ -169,90 +526,87 @@
       const fileInput = document.getElementById("fileInput").files[0];
       if (!fileInput) return alert("Vui lòng chọn hoặc chụp một bức ảnh trước nhé!");
 
+      const btn = document.getElementById("diagnoseBtn");
       const resultSection = document.getElementById("resultSection");
       const statusBox = document.getElementById("statusBox");
       const diseaseName = document.getElementById("diseaseName");
       const confidenceLevel = document.getElementById("confidenceLevel");
       const treatmentList = document.getElementById("treatmentList");
 
-      // Hiện UI Đang tải
-      resultSection.classList.remove("hidden");
-      resultSection.classList.add("flex");
+      btn.disabled = true;
+      btn.textContent = "⏳ Đang phân tích...";
 
-      statusBox.className = "p-4 rounded-lg mb-4 text-center bg-gray-100 border border-gray-300";
-      diseaseName.innerText = "⏳ Đang phân tích ảnh...";
-      diseaseName.className = "text-xl font-bold mt-1 text-gray-600";
-      confidenceLevel.innerText = "";
-      treatmentList.innerHTML = "<li class='text-gray-500 italic'>Đang truy xuất hệ thống...</li>";
+      resultSection.classList.add("show");
+      statusBox.className = "status-box status-loading";
+      diseaseName.style.color = "#555";
+      diseaseName.textContent = "Đang phân tích ảnh...";
+      confidenceLevel.textContent = "";
+      treatmentList.innerHTML = "<li style='color:#aaa;font-style:italic'>Đang truy xuất hệ thống...</li>";
 
       const formData = new FormData();
       formData.append("file", fileInput);
 
       try {
-        const response = await fetch("/predict", {
-          method: "POST",
-          body: formData
-        });
-
+        const response = await fetch("/predict", { method: "POST", body: formData });
         const data = await response.json();
         detectedDisease = data.class;
         const confidence = (data.confidence * 100).toFixed(2);
 
-        // Hiển thị tên bệnh và đổi màu sắc tương ứng
-        let displayDiseaseName = "";
+        let displayName = "";
         if (detectedDisease === "Healthy") {
-          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-green-100 border border-green-400";
-          diseaseName.className = "text-2xl font-bold mt-1 text-green-700";
-          displayDiseaseName = "KHOAI TÂY KHỎE MẠNH";
+          statusBox.className = "status-box status-healthy";
+          diseaseName.style.color = "var(--healthy)";
+          displayName = "KHOAI TÂY KHỎE MẠNH";
         } else if (detectedDisease === "Early_Blight") {
-          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-orange-100 border border-orange-400";
-          diseaseName.className = "text-2xl font-bold mt-1 text-orange-700";
-          displayDiseaseName = "MỐC SƯƠNG ĐẾN SỚM";
+          statusBox.className = "status-box status-early";
+          diseaseName.style.color = "var(--early)";
+          displayName = "MỐC SƯƠNG ĐẾN SỚM";
         } else {
-          statusBox.className = "p-4 rounded-lg mb-4 text-center bg-red-100 border border-red-400";
-          diseaseName.className = "text-2xl font-bold mt-1 text-red-700";
-          displayDiseaseName = "MỐC SƯƠNG ĐẾN MUỘN";
+          statusBox.className = "status-box status-late";
+          diseaseName.style.color = "var(--late)";
+          displayName = "MỐC SƯƠNG ĐẾN MUỘN";
         }
 
-        diseaseName.innerText = displayDiseaseName;
-        confidenceLevel.innerText = `Độ tin cậy: ${confidence}%`;
-        confidenceLevel.className = "text-sm mt-1 font-medium text-gray-700";
+        diseaseName.textContent = displayName;
+        confidenceLevel.textContent = `Độ tin cậy: ${confidence}%`;
 
-        // Render danh sách xử lý nhanh
         treatmentList.innerHTML = "";
         const steps = treatmentGuide[detectedDisease] || ["Cần tư vấn thêm với chuyên gia."];
         steps.forEach(step => {
           treatmentList.innerHTML += `<li>${step}</li>`;
         });
 
-        // LƯU LỊCH SỬ SAU KHI CHẨN ĐOÁN XONG
-        saveHistory(displayDiseaseName, confidence, fileInput);
+        saveHistory(displayName, confidence, fileInput);
 
       } catch (error) {
-        statusBox.className = "p-4 rounded-lg mb-4 text-center bg-red-100 border border-red-400";
-        diseaseName.className = "text-xl font-bold mt-1 text-red-700";
-        diseaseName.innerText = "LỖI KẾT NỐI SERVER";
-        confidenceLevel.innerText = "Vui lòng kiểm tra lại Backend (app.py).";
+        statusBox.className = "status-box status-late";
+        diseaseName.style.color = "var(--late)";
+        diseaseName.textContent = "LỖI KẾT NỐI SERVER";
+        confidenceLevel.textContent = "Vui lòng kiểm tra lại kết nối.";
         treatmentList.innerHTML = "";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🔍 Tiến hành Chẩn đoán";
       }
     }
 
     async function sendMessage() {
-      const userInput = document.getElementById("userInput").value;
-      if (!userInput.trim()) return;
+      const input = document.getElementById("userInput");
+      const userText = input.value.trim();
+      if (!userText) return;
 
       const chatbox = document.getElementById("chatbox");
-      chatbox.innerHTML += `<div class="self-end bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[85%] shadow-sm"><b>Bạn:</b> ${userInput}</div>`;
-      document.getElementById("userInput").value = "";
+      chatbox.innerHTML += `<div class="msg-user"><b>Bạn:</b> ${userText}</div>`;
+      input.value = "";
       chatbox.scrollTop = chatbox.scrollHeight;
 
-      let finalQuery = userInput;
+      let finalQuery = userText;
       if (detectedDisease) {
-        finalQuery = `(Ngữ cảnh: Tôi đang điều trị bệnh ${detectedDisease} trên khoai tây. Dựa vào Knowledge Base, hãy trả lời câu hỏi sau): ${userInput}`;
+        finalQuery = `(Ngữ cảnh: Tôi đang điều trị bệnh ${detectedDisease} trên khoai tây. Dựa vào Knowledge Base, hãy trả lời câu hỏi sau): ${userText}`;
       }
 
       const botMsgId = "bot-msg-" + Date.now();
-      chatbox.innerHTML += `<div id="${botMsgId}" class="self-start bg-blue-50 text-blue-800 px-4 py-2 rounded-lg max-w-[85%] border border-blue-200 shadow-sm"><b>Trợ lý AI:</b> Đang suy nghĩ... ⏳</div>`;
+      chatbox.innerHTML += `<div id="${botMsgId}" class="msg-bot"><b>Trợ lý:</b> Đang suy nghĩ... ⏳</div>`;
       chatbox.scrollTop = chatbox.scrollHeight;
 
       try {
@@ -261,92 +615,69 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ q: finalQuery })
         });
-
         const data = await response.json();
-        const formattedAnswer = data.answer.replace(/\n/g, "<br>");
-        document.getElementById(botMsgId).innerHTML = `<b>Trợ lý AI:</b> <span class="leading-relaxed">${formattedAnswer}</span>`;
+        const formatted = data.answer.replace(/\n/g, "<br>");
+        document.getElementById(botMsgId).innerHTML = `<b>Trợ lý:</b> <span style="line-height:1.6">${formatted}</span>`;
       } catch (error) {
         document.getElementById(botMsgId).innerHTML = `<b>Lỗi:</b> Không thể kết nối với AI.`;
       }
       chatbox.scrollTop = chatbox.scrollHeight;
     }
 
-    // ==========================================
-    // CÁC HÀM XỬ LÝ LỊCH SỬ (HISTORY)
-    // ==========================================
-
-    // 1. Hàm tải lịch sử khi vừa mở app
     function loadHistory() {
-      const historyContainer = document.getElementById("historyContainer");
-      let history = JSON.parse(localStorage.getItem('plantDiseaseHistory')) || [];
+      const container = document.getElementById("historyContainer");
+      const history = JSON.parse(localStorage.getItem('plantDiseaseHistory')) || [];
 
       if (history.length === 0) {
-        historyContainer.innerHTML = '<p class="text-gray-500 text-center w-full italic mt-4">Chưa có dữ liệu lịch sử.</p>';
+        container.innerHTML = '<p class="history-empty">Chưa có dữ liệu lịch sử.</p>';
         return;
       }
 
-      historyContainer.innerHTML = ""; // Xóa nội dung cũ
-
-      // Tạo các thẻ (card) hiển thị lịch sử
+      container.innerHTML = "";
       history.forEach(item => {
-        let statusColor = "";
-        if (item.disease.includes("KHỎE MẠNH")) statusColor = "bg-green-100 text-green-800 border-green-200";
-        else if (item.disease.includes("SỚM")) statusColor = "bg-orange-100 text-orange-800 border-orange-200";
-        else statusColor = "bg-red-100 text-red-800 border-red-200";
+        let badgeClass = "badge-late";
+        if (item.disease.includes("KHỎE MẠNH")) badgeClass = "badge-healthy";
+        else if (item.disease.includes("SỚM")) badgeClass = "badge-early";
 
-        let card = `
-          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex gap-3 items-center hover:shadow-md transition">
-            <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg border border-gray-200" alt="Lá bệnh">
-            <div class="flex-1 overflow-hidden">
-              <p class="text-xs text-gray-500 mb-1 flex items-center gap-1">📅 ${item.date}</p>
-              <p class="font-bold text-xs ${statusColor} px-2 py-1 rounded border inline-block truncate max-w-full" title="${item.disease}">
+        container.innerHTML += `
+          <div class="history-card">
+            <img src="${item.image}" alt="Lá bệnh">
+            <div class="history-info">
+              <p class="history-date">📅 ${item.date}</p>
+              <span class="history-badge ${badgeClass}" title="${item.disease}">
                 ${item.disease} (${item.confidence}%)
-              </p>
+              </span>
             </div>
-          </div>
-        `;
-        historyContainer.innerHTML += card;
+          </div>`;
       });
     }
 
-    // 2. Hàm lưu kết quả vào máy
-    function saveHistory(displayDiseaseName, confidence, file) {
-      // Chuyển ảnh thành định dạng Base64 để lưu cục bộ
+    function saveHistory(displayName, confidence, file) {
       const reader = new FileReader();
-      reader.onload = function (e) {
-        const base64Image = e.target.result;
-
+      reader.onload = function(e) {
         const historyItem = {
           date: new Date().toLocaleString('vi-VN'),
-          disease: displayDiseaseName,
+          disease: displayName,
           confidence: confidence,
-          image: base64Image
+          image: e.target.result
         };
-
         let history = JSON.parse(localStorage.getItem('plantDiseaseHistory')) || [];
-        history.unshift(historyItem); // Thêm lên đầu mảng
-
-        // Chỉ giữ lại 10 kết quả gần nhất để tránh lag trình duyệt
+        history.unshift(historyItem);
         if (history.length > 10) history.pop();
-
         localStorage.setItem('plantDiseaseHistory', JSON.stringify(history));
-        loadHistory(); // Tải lại giao diện ngay lập tức
+        loadHistory();
       };
       reader.readAsDataURL(file);
     }
 
-    // 3. Hàm xóa lịch sử
     function clearHistory() {
-      if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chẩn đoán? Hành động này không thể hoàn tác.")) {
+      if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử chẩn đoán?")) {
         localStorage.removeItem('plantDiseaseHistory');
         loadHistory();
       }
     }
 
-    // Tự động load lịch sử khi trang web vừa bật lên
     window.onload = loadHistory;
-
   </script>
 </body>
-
 </html>
