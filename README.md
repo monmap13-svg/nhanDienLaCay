@@ -29,10 +29,10 @@
 
 ### 2. Cài đặt chi tiết
 
-**Bước 1: Clone dự án về máy**
+**Bước 1: Mở thư mục dự án**
+Giải nén file ZIP dự án (nếu có) và mở Terminal (hoặc CMD/PowerShell) tại thư mục `nhanDienBenhLaCay`:
 ```bash
-git clone https://github.com/monmap13-svg/nhanDienLaCay.git
-cd nhanDienLaCay
+cd nhanDienBenhLaCay
 ```
 
 **Bước 2: (Tùy chọn) Tạo môi trường ảo ảo (Virtual Environment)**
