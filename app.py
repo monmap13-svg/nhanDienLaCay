@@ -107,9 +107,9 @@ Hướng dẫn trả lời:
 """
     
     try:
-        # gemini-2.0-flash là bản ổn định nhất hiện tại và được hỗ trợ trên v1
+        # Dùng gemini-flash-latest để Google tự động chọn bản tương thích tốt nhất với API key
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-flash-latest',
             contents=prompt
         )
         answer = response.text
